@@ -10,12 +10,16 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+require('./blockchain/initBlockChain');
+
 /*  Get/post api for server  */
 app.get('/', function (req, res) {
     res.json({
-      message: 'Hello from Sakila API'
+      message: 'Hello from BlockChain API'
     });
 })
+
+app.use('/blockchain', require('./routes/blockchain.route'));
 
 /* Catching error */
 app.use(function (req, res, next) {
@@ -35,6 +39,6 @@ require('./blockchain/test');
 
 const PORT_SERVER = 3000;
 app.listen(PORT_SERVER, function () {
-  console.log(`Sakila api is running at http://localhost:${PORT_SERVER}`);
+  console.log(`Blockchain Backend api is running at http://localhost:${PORT_SERVER}`);
 })
   
