@@ -30,7 +30,7 @@ class BlockChain {
 
     generateRawNextBlock = (blockData) => {
         const previousBlock = this.getLatestBlock();
-        const difficulty = this.getDifficulty(this.blockchain);
+        const difficulty = this.getDifficulty();
         const nextIndex = previousBlock.index + 1;
         const nextTimestamp = blUtil.getCurrentTimestamp();
         const newBlock = this.creatNewBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData, difficulty);
@@ -60,21 +60,32 @@ class BlockChain {
             console.log('Received blockchain invalid');
         }
     };
+
     /////////////////////////////////
     /* check valid */
     ////////////////////////////////
 
     //validate for one block
     isValidNewBlock = (newBlock, previousBlock) => {
+        if (!this.isValidBlockStructure(newBlock)) {
+            console.log('invalid block structure: %s', JSON.stringify(newBlock));
+            return false;
+        }
         if (previousBlock.index + 1 !== newBlock.index) {
             console.log('invalid index');
             return false;
         } else if (previousBlock.hash !== newBlock.previousHash) {
             console.log('invalid previoushash');
             return false;
+        } else if (!this.isValidTimestamp(newBlock, previousBlock)) {
+            console.log('invalid timestamp');
+            return false;
         } else if (this.calculateHashForBlock(newBlock) !== newBlock.hash) {
             console.log(typeof (newBlock.hash) + ' ' + typeof this.calculateHashForBlock(newBlock));
             console.log('invalid hash: ' + this.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
+            return false;
+        }else if(this.hashMatchesDifficulty(newBlock.hash, newBlock.difficulty) === false){
+            console.log('block difficulty not satisfied. Expected: ' + block.difficulty + 'got: ' + block.hash);
             return false;
         }
         return true;
@@ -103,6 +114,11 @@ class BlockChain {
         const hashInBinary = blUtil.hexToBinary(hash);
         const requiredPrefix = '0'.repeat(difficulty);
         return hashInBinary.startsWith(requiredPrefix);
+    };
+
+    isValidTimestamp = (newBlock, previousBlock) => {
+        return ( previousBlock.timestamp - 60 < newBlock.timestamp )
+            && newBlock.timestamp - 60 < blUtil.getCurrentTimestamp();
     };
 
 
@@ -143,7 +159,7 @@ class BlockChain {
             && typeof block.hash === 'string'
             && typeof block.previousHash === 'string'
             && typeof block.timestamp === 'number'
-            && typeof block.data === 'string';
+            //&& typeof block.data === 'string';
     };
 }
 
