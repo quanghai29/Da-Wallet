@@ -130,6 +130,28 @@ module.exports = {
         return true;
     },
 
+    validateBlockTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+        const coinbaseTx = aTransactions[0];
+        if (!this.validateCoinbaseTx(coinbaseTx, blockIndex)) {
+            console.log('invalid coinbase transaction: ' + JSON.stringify(coinbaseTx));
+            return false;
+        }
+    
+        // check for duplicate txIns. Each txIn can be included only once
+        const txIns = _(aTransactions)
+            .map((tx) => tx.txIns)
+            .flatten()
+            .value();
+    
+        if (hasDuplicates(txIns)) {
+            return false;
+        }
+    
+        // all but coinbase transactions
+        const normalTransactions = aTransactions.slice(1);
+        return normalTransactions.map((tx) => this.validateTransaction(tx, aUnspentTxOuts))
+            .reduce((a, b) => (a && b), true);
+    },
     /////////////////////////////////
     /* create/generate : key/Id */
     ////////////////////////////////
@@ -188,6 +210,19 @@ module.exports = {
         return resultingUnspentTxOuts;
     },
 
+    // tạo transaction
+    // aTransactions: Transaction[]
+    // aUnspentTxOuts: UnspentTxOut[]
+    // blockIndex: number
+    processTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+
+        if (!validateBlockTransactions(aTransactions, aUnspentTxOuts, blockIndex)) {
+            console.log('invalid block transactions');
+            return null;
+        }
+        return updateUnspentTxOuts(aTransactions, aUnspentTxOuts);
+    },
+    
     //tạo transaction đầu tiên của address
     //address : string
     // blockIndex : number

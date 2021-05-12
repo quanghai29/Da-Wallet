@@ -23,6 +23,10 @@ router.post('/mineTransaction', (req, res) => {
         res.status(400).send(e.message);
     }
 });
+
+router.post('/sendTransaction', (req, res) => {
+    
+})
 // router.get('/peers', (req, res) => {
 //     res.send(getSockets().map(( s ) => s._socket.remoteAddress + ':' + s._socket.remotePort));
 // });

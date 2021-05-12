@@ -2,7 +2,7 @@ const EC = require('elliptic').ec;
 const fs = require('fs');
 const _ = require('lodash');
 const ec = new EC('secp256k1');
-const tx = require('../transaction/transaction');
+const transaction = require('../transaction/transaction');
 
 const privateKeyLocation = process.env.PRIVATE_KEY || 'node/wallet/private_key';
 
@@ -112,10 +112,10 @@ module.exports = {
         const tx = new Transaction();
         tx.txIns = unsignedTxIns;
         tx.txOuts = createTxOuts(receiverAddress, myAddress, amount, leftOverAmount);
-        tx.id = tx.getTransactionId(tx);
+        tx.id = transaction.getTransactionId(tx);
 
         tx.txIns = tx.txIns.map((txIn, index) => {
-            txIn.signature = tx.signTxIn(tx, index, privateKey, unspentTxOuts);
+            txIn.signature = transaction.signTxIn(tx, index, privateKey, unspentTxOuts);
             return txIn;
         });
 

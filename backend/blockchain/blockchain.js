@@ -13,7 +13,7 @@ const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
 class BlockChain {
     constructor(genesisBlock){
         this.blockchain = [genesisBlock];
-        this.unspentTxOuts = [];
+        this.unspentTxOuts = [tx.processTransactions(this.blockchain[0].data, [], 0)];
     }
 
     /////////////////////////////////
@@ -54,9 +54,9 @@ class BlockChain {
             throw Error('invalid amount');
         }
         const coinbaseTx = tx.getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
-        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), getUnspentTxOuts(), getTransactionPool());
+        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), getTransactionPool());
         const blockData = [coinbaseTx, tx];
-        return generateRawNextBlock(blockData);
+        return this.generateRawNextBlock(blockData);
     };
 
     //Thêm một block mới vào chain
@@ -68,6 +68,13 @@ class BlockChain {
         return false;
     };
     
+    sendTransaction = (address, amount) => {
+        const tx = wallet.createTransaction(address, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), getTransactionPool());
+        addToTransactionPool(tx, getUnspentTxOuts());
+        //broadCastTransactionPool();
+        return tx;
+    };
+
     /////////////////////////////////
     /* replaceChain */
     ////////////////////////////////
@@ -82,6 +89,7 @@ class BlockChain {
             console.log('Received blockchain invalid');
         }
     };
+
 
     /////////////////////////////////
     /* check valid */
