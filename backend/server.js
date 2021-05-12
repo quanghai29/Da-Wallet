@@ -36,6 +36,7 @@ app.use(function (err, req, res, next) {
 })
 
 require('./blockchain/test');
+require('./wallet/test');
 
 const PORT_SERVER = 3000;
 app.listen(PORT_SERVER, function () {

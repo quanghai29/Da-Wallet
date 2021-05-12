@@ -1,5 +1,8 @@
 const Block = require('./block');
 const blUtil = require('../utils/blockchain.util');
+const tx =require('../transaction/transaction');
+const txUtil = require('../utils/transaction.util');
+const wallet = require('../wallet/wallet');
 
 // in seconds
 const BLOCK_GENERATION_INTERVAL = 10;
@@ -10,13 +13,14 @@ const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
 class BlockChain {
     constructor(genesisBlock){
         this.blockchain = [genesisBlock];
+        this.unspentTxOuts = [];
     }
 
     /////////////////////////////////
     /* add new block to chain */
     ////////////////////////////////
 
-    // blockData: Transaction []
+    // tạo thông tin cho một block
     creatNewBlock = (index, previousHash, timestamp, data, difficulty) => {
         let nonce = 0;
         while (true) {
@@ -28,6 +32,8 @@ class BlockChain {
         }
     };
 
+    //Tạo mới 1 block kế tiếp
+    // blockData: Transaction []
     generateRawNextBlock = (blockData) => {
         const previousBlock = this.getLatestBlock();
         const difficulty = this.getDifficulty();
@@ -38,6 +44,22 @@ class BlockChain {
         return newBlock;
     };
 
+
+    //Tạo 1 block với transaction khi thực hiện giao dịch
+    generatenextBlockWithTransaction = (receiverAddress, amount) => {
+        if (!txUtil.isValidAddress(receiverAddress)) {
+            throw Error('invalid address');
+        }
+        if (typeof amount !== 'number') {
+            throw Error('invalid amount');
+        }
+        const coinbaseTx = tx.getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
+        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), getUnspentTxOuts(), getTransactionPool());
+        const blockData = [coinbaseTx, tx];
+        return generateRawNextBlock(blockData);
+    };
+
+    //Thêm một block mới vào chain
     addBlockToChain = (newBlock) => {
         if (this.isValidNewBlock(newBlock, this.getLatestBlock())) {
             this.blockchain.push(newBlock);
