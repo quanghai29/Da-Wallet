@@ -3,7 +3,9 @@ const transactionPool = require('./transaction/transactionPool');
 
 const WS_PORT = 40567;
 
+// all sockets 
 let sockets = [];
+
 if (!sockets) {
     sockets = new WebSocket.Server({
     port: WS_PORT
