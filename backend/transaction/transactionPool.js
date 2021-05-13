@@ -13,6 +13,14 @@ const getTxPoolIns = (aTransactionPool) => {
         .value();
 };
 
+//check transaction
+//txIn: TxIn, unspentTxOuts: UnspentTxOut[]
+const hasTxIn = (txIn, unspentTxOuts) => {
+    const foundTxIn = unspentTxOuts.find((uTxO) => {
+        return uTxO.txOutId === txIn.txOutId && uTxO.txOutIndex === txIn.txOutIndex;
+    });
+    return foundTxIn !== undefined;
+};
 module.exports = {
     /////////////////////////////////
     /* check valid */
@@ -54,5 +62,27 @@ module.exports = {
         }
         console.log('adding to txPool: %s', JSON.stringify(tx));
         transactionPool.push(tx);
+    },
+    
+    //Update transaction pool
+    //unspentTxOuts: UnspentTxOut[]
+    updateTransactionPool (unspentTxOuts) {
+        const invalidTxs = [];
+        for (const tx of transactionPool) {
+            for (const txIn of tx.txIns) {
+                if (!hasTxIn(txIn, unspentTxOuts)) {
+                    invalidTxs.push(tx);
+                    break;
+                }
+            }
+        }
+        if (invalidTxs.length > 0) {
+            console.log('removing the following transactions from txPool: %s', JSON.stringify(invalidTxs));
+            transactionPool = _.without(transactionPool, ...invalidTxs);
+        }
+    },
+
+    getTransactionPool = () => {
+        return _.cloneDeep(transactionPool);
     }
 }
