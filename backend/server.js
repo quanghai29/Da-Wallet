@@ -12,6 +12,8 @@ app.use(morgan('dev'));
 
 require('./blockchain/initBlockChain');
 
+
+
 /*  Get/post api for server  */
 app.get('/', function (req, res) {
     res.json({
@@ -20,6 +22,9 @@ app.get('/', function (req, res) {
 })
 
 app.use('/blockchain', require('./routes/blockchain.route'));
+
+
+require('./ws');
 
 /* Catching error */
 app.use(function (req, res, next) {
@@ -35,10 +40,10 @@ app.use(function (err, req, res, next) {
     });
 })
 
-require('./blockchain/test');
+//require('./blockchain/test');
 require('./wallet/test');
 
-const PORT_SERVER = 3000;
+const PORT_SERVER = 3001;
 app.listen(PORT_SERVER, function () {
   console.log(`Blockchain Backend api is running at http://localhost:${PORT_SERVER}`);
 })

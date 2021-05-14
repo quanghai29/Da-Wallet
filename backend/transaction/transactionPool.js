@@ -82,7 +82,7 @@ module.exports = {
         }
     },
 
-    getTransactionPool = () => {
+    getTransactionPool() {
         return _.cloneDeep(transactionPool);
     }
 }

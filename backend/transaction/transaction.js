@@ -19,6 +19,11 @@ class TxIn {
     txOutId;//string
     txOutIndex;//number
     signature;//string
+    constructor(){
+        this.txOutId = '';
+        this.txOutIndex = 0;
+        this.signature = '';
+    }
 }
 
 class TxOut {
@@ -32,6 +37,11 @@ class Transaction {
     id;//string
     txIns;// TxIn[]
     txOuts;// TxOut[]
+    constructor(){
+        this.id = '';
+        this.txIns = [];
+        this.txOuts = [];
+    }
 }
 
 module.exports = {
@@ -54,7 +64,7 @@ module.exports = {
             return false;
         }
     
-        if (getTransactionId(transaction) !== transaction.id) {
+        if (this.getTransactionId(transaction) !== transaction.id) {
             console.log('invalid tx id: ' + transaction.id);
             return false;
         }
@@ -107,7 +117,7 @@ module.exports = {
             console.log('the first transaction in the block must be coinbase transaction');
             return false;
         }
-        if (getTransactionId(transaction) !== transaction.id) {
+        if (this.getTransactionId(transaction) !== transaction.id) {
             console.log('invalid coinbase tx id: ' + transaction.id);
             return false;
         }
@@ -130,7 +140,7 @@ module.exports = {
         return true;
     },
 
-    validateBlockTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+    validateBlockTransactions (aTransactions, aUnspentTxOuts, blockIndex) {
         const coinbaseTx = aTransactions[0];
         if (!this.validateCoinbaseTx(coinbaseTx, blockIndex)) {
             console.log('invalid coinbase transaction: ' + JSON.stringify(coinbaseTx));
@@ -159,14 +169,15 @@ module.exports = {
     //generate Id of Transaction
     // transaction: Transaction
     getTransactionId (transaction) {
-        const txInContent = transaction.txIns
-            .map((txIn) => txIn.txOutId + txIn.txOutIndex)
-            .reduce((a, b) => a + b, '');
+        
+        let txInContent = '', txOutContent = '';
+        if(transaction.hasOwnProperty('txIns')){
+            txInContent = transaction.txIns.map((txIn) => txIn.txOutId + txIn.txOutIndex).reduce((a, b) => a + b, '');
+        }
 
-        const txOutContent = transaction.txOuts
-            .map((txOut) => txOut.address + txOut.amount)
-            .reduce((a, b) => a + b, '');
-
+        if(transaction.hasOwnProperty('txOuts')){
+            txOutContent = transaction.txOuts.map((txOut) => txOut.address + txOut.amount).reduce((a, b) => a + b, '');
+        }
         return CryptoJS.SHA256(txInContent + txOutContent).toString();
     },
 
@@ -214,9 +225,9 @@ module.exports = {
     // aTransactions: Transaction[]
     // aUnspentTxOuts: UnspentTxOut[]
     // blockIndex: number
-    processTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+    processTransactions (aTransactions, aUnspentTxOuts, blockIndex) {
 
-        if (!validateBlockTransactions(aTransactions, aUnspentTxOuts, blockIndex)) {
+        if (!this.validateBlockTransactions(aTransactions, aUnspentTxOuts, blockIndex)) {
             console.log('invalid block transactions');
             return null;
         }

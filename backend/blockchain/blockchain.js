@@ -1,8 +1,9 @@
 const Block = require('./block');
 const blUtil = require('../utils/blockchain.util');
-const tx =require('../transaction/transaction');
+const trs =require('../transaction/transaction');
 const txUtil = require('../utils/transaction.util');
 const wallet = require('../wallet/wallet');
+const trsPool = require('../transaction/transactionPool');
 
 // in seconds
 const BLOCK_GENERATION_INTERVAL = 10;
@@ -13,7 +14,7 @@ const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
 class BlockChain {
     constructor(genesisBlock){
         this.blockchain = [genesisBlock];
-        this.unspentTxOuts = [tx.processTransactions(this.blockchain[0].data, [], 0)];
+        this.unspentTxOuts = [trs.processTransactions(this.blockchain[0].data, [], 0)]; //genesisTransaction
     }
 
     /////////////////////////////////
@@ -30,6 +31,12 @@ class BlockChain {
             }
             nonce++;
         }
+    };
+
+    generateNextBlock = () => {
+        const coinbaseTx = getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
+        const blockData = [coinbaseTx].concat(trsPool.getTransactionPool());
+        return generateRawNextBlock(blockData);
     };
 
     //Tạo mới 1 block kế tiếp
@@ -53,8 +60,8 @@ class BlockChain {
         if (typeof amount !== 'number') {
             throw Error('invalid amount');
         }
-        const coinbaseTx = tx.getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
-        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), getTransactionPool());
+        const coinbaseTx = trs.getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
+        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), trsPool.getTransactionPool());
         const blockData = [coinbaseTx, tx];
         return this.generateRawNextBlock(blockData);
     };
@@ -191,6 +198,13 @@ class BlockChain {
             && typeof block.timestamp === 'number'
             //&& typeof block.data === 'string';
     };
+
+    handleReceivedTransaction = (transaction) => {
+        addToTransactionPool(transaction, getUnspentTxOuts());
+    };
+
+    getUnspentTxOuts = () => this.unspentTxOuts;
+    
 }
 
 

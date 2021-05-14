@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
-const transactionPool = require('./transaction/transactionPool');
-
+const trs = require('./transaction/transaction');
+const trsPool = require('./transaction/transactionPool');
+const bitcoin = require('./blockchain/initBlockChain');
 const WS_PORT = 40567;
 
 // all sockets 
@@ -76,7 +77,7 @@ const initMessageHandler = (ws) => {
                     }
                     receivedTransactions.forEach((transaction) => {
                         try {
-                            handleReceivedTransaction(transaction);
+                            bitcoin.handleReceivedTransaction(transaction);
                             // if no error is thrown, transaction was indeed added to the pool
                             // let's broadcast transaction pool
                             broadcast(responseTransactionPoolMsg());
@@ -114,6 +115,6 @@ const queryTransactionPoolMsg = () => ({
 //return all transaction in pool which are unconfirm
 const responseTransactionPoolMsg = () => ({
     'type': MessageType.RESPONSE_TRANSACTION_POOL,
-    'data': JSON.stringify(transactionPool.getTransactionPool())
+    'data': JSON.stringify(trsPool.getTransactionPool())
 });
 

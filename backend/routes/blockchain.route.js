@@ -2,7 +2,6 @@ const express = require('express');
 const bitcoin = require('../blockchain/initBlockChain');
 const router = express.Router();
 
-
 router.get('/blocks', (req, res) => {
     res.send(bitcoin.blockchain);
 });

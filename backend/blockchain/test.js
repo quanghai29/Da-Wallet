@@ -13,4 +13,4 @@ bitcoin1.generateRawNextBlock(blockData);
 
 bitcoin.replaceChain(bitcoin1.blockchain);
 
-console.log(bitcoin);
+//console.log(bitcoin);
