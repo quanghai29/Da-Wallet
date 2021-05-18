@@ -1,10 +1,15 @@
+const helper = require('../utils/helper.util');
+console.log(helper);
 const CryptoJS = require('crypto-js');
 const EC = require('elliptic').ec;
 const txUtil = require('../utils/transaction.util');
+const _ = require('lodash');
+const wallet = require('../wallet/wallet');
+
 
 const ec = new EC('secp256k1');
 
-const COINBASE_AMOUNT = 50;
+const COINBASE_AMOUNT = 900000000;
 
 class UnspentTxOut {
     constructor(txOutId, txOutIndex, address, amount) {
@@ -44,8 +49,8 @@ class Transaction {
     }
 }
 
+ 
 module.exports = {
-    
     /////////////////////////////////
     /* support Function */
     ////////////////////////////////
@@ -153,7 +158,7 @@ module.exports = {
             .flatten()
             .value();
     
-        if (hasDuplicates(txIns)) {
+        if (this.hasDuplicates(txIns)) {
             return false;
         }
     
@@ -162,6 +167,22 @@ module.exports = {
         return normalTransactions.map((tx) => this.validateTransaction(tx, aUnspentTxOuts))
             .reduce((a, b) => (a && b), true);
     },
+
+
+    hasDuplicates  (txIns) {
+        const groups = _.countBy(txIns, (txIn) => txIn.txOutId + txIn.txOutIndex);
+        return _(groups)
+            .map((value, key) => {
+                if (value > 1) {
+                    console.log('duplicate txIn: ' + key);
+                    return true;
+                } else {
+                    return false;
+                }
+            })
+            .includes(true);
+    },
+    
     /////////////////////////////////
     /* create/generate : key/Id */
     ////////////////////////////////
@@ -189,10 +210,24 @@ module.exports = {
     signTxIn (transaction, txInIndex, privateKey, aUnspentTxOuts) {
         const txIn = transaction.txIns[txInIndex];
         const dataToSign = transaction.id;
-        const referencedUnspentTxOut = findUnspentTxOut(txIn.txOutId, txIn.txOutIndex, aUnspentTxOuts);
+        const referencedUnspentTxOut = this.findUnspentTxOut(txIn.txOutId, txIn.txOutIndex, aUnspentTxOuts);
+
+        if (referencedUnspentTxOut == null) {
+            console.log('could not find referenced txOut');
+            throw Error();
+        }
+
         const referencedAddress = referencedUnspentTxOut.address;
+
+        // if (wallet.getPublicAdress(privateKey) !== referencedAddress) {
+        //     console.log('trying to sign an input with private' +
+        //         ' key that does not match the address that is referenced in txIn');
+        //     throw Error();
+        // }
+
         const key = ec.keyFromPrivate(privateKey, 'hex');
-        const signature = toHexString(key.sign(dataToSign).toDER());
+        const signature = helper.toHexString(key.sign(dataToSign).toDER());
+
         return signature;
     },
 
@@ -208,16 +243,16 @@ module.exports = {
                 return t.txOuts.map((txOut, index) => new UnspentTxOut(t.id, index, txOut.address, txOut.amount));
             })
             .reduce((a, b) => a.concat(b), []);
-    
+
         const consumedTxOuts = aTransactions
             .map((t) => t.txIns)
             .reduce((a, b) => a.concat(b), [])
             .map((txIn) => new UnspentTxOut(txIn.txOutId, txIn.txOutIndex, '', 0));
-    
+
         const resultingUnspentTxOuts = aUnspentTxOuts
             .filter(((uTxO) => !findUnspentTxOut(uTxO.txOutId, uTxO.txOutIndex, consumedTxOuts)))
             .concat(newUnspentTxOuts);
-    
+        
         return resultingUnspentTxOuts;
     },
 
@@ -231,7 +266,7 @@ module.exports = {
             console.log('invalid block transactions');
             return null;
         }
-        return updateUnspentTxOuts(aTransactions, aUnspentTxOuts);
+        return this.updateUnspentTxOuts(aTransactions, aUnspentTxOuts);
     },
     
     //tạo transaction đầu tiên của address
@@ -249,4 +284,4 @@ module.exports = {
         t.id = this.getTransactionId(t);
         return t;
     }
-}
+};

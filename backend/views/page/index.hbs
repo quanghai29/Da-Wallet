@@ -1,0 +1,115 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <title>Login</title>
+    <style>
+        .mt-5 {
+            margin-top: 7% !important;
+        }
+
+        .fg label:nth-child(2) {
+            float: right;
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-5 shadow-sm">
+        <a class="navbar-brand" href="#">MEW</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="row h-75">
+            <div class="col align-self-center">
+                <div class="card card-shadow bg-danger text-white">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Create Wallet</h5>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <label for="privateKey">Private key</label>
+                                <input class="form-control" id="privateKeyGen" readonly/>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" style="margin-top: 31px;" id="genKey">Gen key</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col align-self-center">
+                <div class="card card-shadow bg-success text-white">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">Acess Wallet</h5>
+                        <div class="row">
+                            <div class="col-md-9">
+                                <label for="">Private key</label>
+                                <input class="form-control" id="privateKey"/>
+                            </div>
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" style="margin-top: 31px;" id="access">Access</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const Domain = `{{url}}`;
+        $('#genKey').click(()=>{
+            $.ajax({
+                url: Domain + '/blockchain/privateKey',
+                type: 'GET'
+            }).done(function (data) {
+               let privateKey = 'abcd';
+               privateKey = data.privateKey;
+               $("#privateKeyGen").val(privateKey);
+            })
+        })
+
+        $('#access').click(()=>{
+            let key = $("#privateKey").val().trim();
+            if(key === undefined || key === ''){
+                Swal.fire('Key must be not empty');
+                return;
+            }
+            $.ajax({
+                url: Domain + '/blockchain/wallet',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({privateKey: key})
+            }).done(function (data) {
+                const walletUrl = Domain + '/myWallet/?address=' + data.address;
+                window.location.replace(walletUrl);
+            })
+        })
+
+    </script>
+</body>
+
+</html>

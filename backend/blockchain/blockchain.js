@@ -1,9 +1,10 @@
 const Block = require('./block');
 const blUtil = require('../utils/blockchain.util');
-const trs =require('../transaction/transaction');
 const txUtil = require('../utils/transaction.util');
 const wallet = require('../wallet/wallet');
+const trs =require('../transaction/transaction');
 const trsPool = require('../transaction/transactionPool');
+const _ = require('lodash');
 
 // in seconds
 const BLOCK_GENERATION_INTERVAL = 10;
@@ -11,10 +12,15 @@ const BLOCK_GENERATION_INTERVAL = 10;
 // in blocks
 const DIFFICULTY_ADJUSTMENT_INTERVAL = 10;
 
+//Local Variable
+const sysPrivateKey = '76456b9075147a8b5c52e9985fd309f1c532aafed70e4d010b7249cb9c897692';
+const sysAdress = '04165c7464825649c888b6d9345ed5664964814ad9f57114f0927009bb0aaca3439a283f316bb28a0a8899cb183666e60879deb3d9ac6279c604b44b78987486d8';
+
 class BlockChain {
     constructor(genesisBlock){
         this.blockchain = [genesisBlock];
-        this.unspentTxOuts = [trs.processTransactions(this.blockchain[0].data, [], 0)]; //genesisTransaction
+        
+        this.unspentTxOuts = [...trs.processTransactions(this.blockchain[0].data, [], 0)]; //genesisTransaction
     }
 
     /////////////////////////////////
@@ -33,10 +39,10 @@ class BlockChain {
         }
     };
 
-    generateNextBlock = () => {
-        const coinbaseTx = getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
+    generateNextBlock = (address) => {
+        const coinbaseTx = trs.getCoinbaseTransaction(address, this.blockchain.length);
         const blockData = [coinbaseTx].concat(trsPool.getTransactionPool());
-        return generateRawNextBlock(blockData);
+        return this.generateRawNextBlock(blockData);
     };
 
     //Tạo mới 1 block kế tiếp
@@ -53,18 +59,25 @@ class BlockChain {
 
 
     //Tạo 1 block với transaction khi thực hiện giao dịch
-    generatenextBlockWithTransaction = (receiverAddress, amount) => {
+    //privateKey cua nguoi gui
+    generatenextBlockWithTransaction = (privateKey ,address, receiverAddress, amount) => {
         if (!txUtil.isValidAddress(receiverAddress)) {
             throw Error('invalid address');
         }
         if (typeof amount !== 'number') {
             throw Error('invalid amount');
         }
-        const coinbaseTx = trs.getCoinbaseTransaction(wallet.getPublicFromWallet(), this.blockchain.length);
-        const tx = wallet.createTransaction(receiverAddress, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), trsPool.getTransactionPool());
+        const coinbaseTx = trs.getCoinbaseTransaction(address, this.blockchain.length);
+        const tx = wallet.createTransaction(receiverAddress, amount, privateKey, _.cloneDeep(this.unspentTxOuts), trsPool.getTransactionPool());
         const blockData = [coinbaseTx, tx];
         return this.generateRawNextBlock(blockData);
     };
+
+    //Khởi tạo 1 số tiền ban đầu cho tài khoản
+    getFirstBalance = (receiverAddress) => {
+        const amount = 30;
+        return this.generatenextBlockWithTransaction(sysPrivateKey, sysAdress, receiverAddress, amount);
+    }
 
     //Thêm một block mới vào chain
     addBlockToChain = (newBlock) => {

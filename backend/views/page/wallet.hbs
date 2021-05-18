@@ -1,0 +1,179 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>My Wallet</title>
+    <style>
+        .mt-5 {
+            margin-top: 7% !important;
+        }
+
+        .fg label:nth-child(2) {
+            float: right;
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-5 shadow-sm">
+        <a class="navbar-brand" href="#">MEW</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/page/index">Home<span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container-fluid p-5" style="margin-left: 15%">
+        <div class="row mh-25 mb-5">
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-info text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold"><i class="fas fa-address-book"> Address</i></h3>
+                        <p class="card-text h6">{{data.address}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-danger text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold mb-4"><i class="fas fa-coins"> Balance</i></h3>
+                        <p class="card-subtitle mb-4 h4" id="pBalanceID">0</p>
+                        <button class="btn btn-light" data-toggle="modal" data-target="#buyCoinModal">Buy Coin</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal For Buy Coin -->
+            <div class="modal fade" id="buyCoinModal" tabindex="-1" role="dialog" aria-labelledby="buyCoinModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle">Buy Coin</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">To Adress</label>
+                                    <input class="form-control ipuAdress"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">Amount</label>
+                                    <input type="number" class="form-control ipuAmount"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">Private Key</label>
+                                    <input class="form-control ipuPrivateKey"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="btnBuyCoinID">Buy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-warning text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold"><i class="fas fa-server"> NextWork</i></h3>
+                        <p class="card-subtitle mb-2">1000 ETH</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h4>Send Transaction<h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="px-5">
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Amount</label>
+                                <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter amount">
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">To Address</label>
+                                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter address">
+                            </div>
+                            <button class="btn btn-primary">Send transaction</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        const Domain = `{{url}}`;
+        const address = `{{data.address}}`.toString();
+        $(document).ready(() => {
+            initWallet();
+        })
+
+        function initWallet() {
+            getBalance();
+        }
+
+        function getBalance() {
+            $.ajax({
+                url: Domain + '/blockchain/balance',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ address: address })
+            }).done(function (data) {
+                $('#pBalanceID').html(data.balance);
+            })
+        }
+
+        function buyCoin(){
+            let toAdress = $("#buyCoinModal .ipuAdress").val().trim();
+            let amount = $("#buyCoinModal .ipuAmount").val();
+            if(toAdress === ''){
+                alert('address must be not empty');
+                return;
+            }
+
+            $.ajax({
+                url: Domain + '/blockchain/buyCoin',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ toAdress; parseInt(amount)})
+            }).done(function (data) {
+                console.log(data);
+            })
+                
+
+        }
+    </script>
+</body>
+
+</html>

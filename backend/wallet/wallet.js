@@ -1,16 +1,11 @@
+const trs =  require('../transaction/transaction'); 
 const EC = require('elliptic').ec;
 const fs = require('fs');
 const _ = require('lodash');
+
 const ec = new EC('secp256k1');
-const transaction = require('../transaction/transaction');
 
 const privateKeyLocation = process.env.PRIVATE_KEY || 'node/wallet/private_key';
-
-const generatePrivateKey = () => {
-    const keyPair = ec.genKeyPair();
-    const privateKey = keyPair.getPrivate();
-    return privateKey.toString(16);
-};
 
 const getPrivateFromWallet = () => {
     const buffer = fs.readFileSync(privateKeyLocation, 'utf8');
@@ -43,11 +38,16 @@ const findTxOutsForAmount = (amount, myUnspentTxOuts) => {
 
 //transaction out khi gửi coins đi
 const createTxOuts = (receiverAddress, myAddress, amount, leftOverAmount) => {
-    const txOut1 = new TxOut(receiverAddress, amount);
+    const txOut1 = {
+        'address':receiverAddress,
+        'amount': amount
+    };
     if (leftOverAmount === 0) {
         return [txOut1];
     } else {
-        const leftOverTx = new TxOut(myAddress, leftOverAmount);
+        const leftOverTx = {
+            'address':myAddress, 
+            'amount': leftOverAmount};
         return [txOut1, leftOverTx];
     }
 };
@@ -62,6 +62,17 @@ module.exports = {
         return key.getPublic().encode('hex');
     },
 
+    getPublicAdress(privateKey) {
+        const key = ec.keyFromPrivate(privateKey, 'hex');
+        return key.getPublic().encode('hex');
+    },
+
+    generatePrivateKey () {
+        const keyPair = ec.genKeyPair();
+        const privateKey = keyPair.getPrivate();
+        return privateKey.toString(16);
+    },
+
     /////////////////////////////////
     /* Handle with wallet function */
     ////////////////////////////////
@@ -72,7 +83,7 @@ module.exports = {
         if (fs.existsSync(privateKeyLocation)) {
             return;
         }
-        const newPrivateKey = generatePrivateKey();
+        const newPrivateKey = this.generatePrivateKey();
 
         fs.writeFileSync(privateKeyLocation, newPrivateKey);
         console.log('new wallet with private key created to : %s', privateKeyLocation);
@@ -90,18 +101,17 @@ module.exports = {
     /* Handle with transactions */
     ////////////////////////////////
     createTransaction(receiverAddress ,amount ,privateKey ,unspentTxOuts ,txPool) {
-
         console.log('txPool: %s', JSON.stringify(txPool));
-        const myAddress = getPublicKey(privateKey);
+        const myAddress = this.getPublicAdress(privateKey);
         const myUnspentTxOutsA = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
 
-        const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
+        const myUnspentTxOuts = this.filterTxPoolTxs(myUnspentTxOutsA, txPool);
 
         // filter from unspentOutputs such inputs that are referenced in pool
         const { includedUnspentTxOuts, leftOverAmount } = findTxOutsForAmount(amount, myUnspentTxOuts);
 
         const toUnsignedTxIn = (unspentTxOut) => {
-            const txIn = new TxIn();
+            const txIn = {};
             txIn.txOutId = unspentTxOut.txOutId;
             txIn.txOutIndex = unspentTxOut.txOutIndex;
             return txIn;
@@ -109,16 +119,38 @@ module.exports = {
 
         const unsignedTxIns = includedUnspentTxOuts.map(toUnsignedTxIn);
 
-        const tx = new Transaction();
+        const tx = {};
         tx.txIns = unsignedTxIns;
         tx.txOuts = createTxOuts(receiverAddress, myAddress, amount, leftOverAmount);
-        tx.id = transaction.getTransactionId(tx);
+
+        tx.id = trs.getTransactionId(tx);
 
         tx.txIns = tx.txIns.map((txIn, index) => {
-            txIn.signature = transaction.signTxIn(tx, index, privateKey, unspentTxOuts);
+            txIn.signature = trs.signTxIn(tx, index, privateKey, unspentTxOuts);
             return txIn;
         });
 
         return tx;
+    },
+
+    filterTxPoolTxs (unspentTxOuts, transactionPool) {
+        const txIns = _(transactionPool)
+            .map((tx) => tx.txIns)
+            .flatten()
+            .value();
+        const removable = [];
+        for (const unspentTxOut of unspentTxOuts) {
+            const txIn = _.find(txIns, (aTxIn) => {
+                return aTxIn.txOutIndex === unspentTxOut.txOutIndex && aTxIn.txOutId === unspentTxOut.txOutId;
+            });
+    
+            if (txIn === undefined) {
+    
+            } else {
+                removable.push(unspentTxOut);
+            }
+        }
+    
+        return _.without(unspentTxOuts, ...removable);
     }
 }

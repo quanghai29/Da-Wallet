@@ -1,29 +1,52 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const exphbs = require('express-handlebars');
 
 require('express-async-errors');
-
+const PORT_SERVER = 3000;
+const URL_SERVER = 'http://localhost:3000';
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+
+app.engine('hbs', exphbs(
+  {
+      defaultLayout: 'main.hbs',
+      layoutsDir: 'views/_layouts'
+  })
+);
+
+app.set('view engine', 'hbs');
+
 require('./blockchain/initBlockChain');
 
-
-
-/*  Get/post api for server  */
+/* Get/post api for server */
 app.get('/', function (req, res) {
-    res.json({
-      message: 'Hello from BlockChain API'
-    });
+  res.render('page/index', {
+    url: URL_SERVER,
+    layout: false,
+    title: 'HomeWallet'
+  });
 })
 
+app.get('/myWallet/:address', function (req, res) {
+  const address = req.params.address;
+  res.render('page/wallet', {
+    url: URL_SERVER,
+    layout: false,
+    title: 'My Wallet',
+    data: {
+      address
+    }
+  });
+})
+
+
 app.use('/blockchain', require('./routes/blockchain.route'));
-
-
 require('./ws');
 
 /* Catching error */
@@ -41,9 +64,9 @@ app.use(function (err, req, res, next) {
 })
 
 //require('./blockchain/test');
-require('./wallet/test');
+//require('./wallet/test');
 
-const PORT_SERVER = 3001;
+
 app.listen(PORT_SERVER, function () {
   console.log(`Blockchain Backend api is running at http://localhost:${PORT_SERVER}`);
 })
