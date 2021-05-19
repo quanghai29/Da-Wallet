@@ -1,0 +1,364 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>My Wallet</title>
+    <style>
+        .mt-5 {
+            margin-top: 7% !important;
+        }
+
+        .fg label:nth-child(2) {
+            float: right;
+            color: red;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light px-5 shadow-sm">
+        <a class="navbar-brand" href="#">MEW</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/page/index">Home<span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container-fluid p-5" style="margin-left: 15%">
+        <div class="row mh-25 mb-5">
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-info text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold"><i class="fas fa-address-book"> Address</i></h3>
+                        <p class="card-text h6">{{data.address}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-danger text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold mb-4"><i class="fas fa-coins"> Balance</i></h3>
+                        <p class="card-subtitle mb-4 h4" id="pBalanceID">0</p>
+                        <button class="btn btn-light" data-toggle="modal" data-target="#buyCoinModal">Buy Coin</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal For Buy Coin -->
+            <div class="modal fade" id="buyCoinModal" tabindex="-1" role="dialog" aria-labelledby="buyCoinModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle">Buy Coin</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">To Adress</label>
+                                    <input class="form-control ipuAdress" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">Amount</label>
+                                    <input type="number" class="form-control ipuAmount" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-11">
+                                    <label class="font-weight-bold" for="">Private Key</label>
+                                    <input class="form-control ipuPrivateKey" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="btnBuyCoinID">Buy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm bg-warning text-white" style="height: 180px;">
+                    <div class="card-body">
+                        <h3 class="card-title text-bold"><i class="fas fa-server"> NextWork</i></h3>
+                        <p class="card-subtitle mb-2">1000 ETH</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-5">
+            <div class="col-md-9">
+                <div class="card shadow-sm" id="cardSendTransactionID">
+                    <div class="card-header">
+                        <h4>Send Transaction<h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="px-5">
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Amount</label>
+                                <input type="number" class="form-control amount" aria-describedby="emailHelp" placeholder="Enter amount">
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">To Address</label>
+                                <input type="text" class="form-control receiveAddress" aria-describedby="emailHelp" placeholder="Enter address">
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputEmail1">Your privateKey </label>
+                                <input type="text" class="form-control privateKey" aria-describedby="emailHelp" placeholder="Enter private key to confirm">
+                            </div>
+                            <button class="btn btn-primary" onclick="sendTransaction()">Send transaction</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-9">
+                <div class="card shadow-sm" id="cardSendTransactionID">
+                    <div class="card-header">
+                        <h4>Transaction Pool<h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-md-1">
+                                <button class="btn btn-primary" onclick="MineBlock()">Mine Block</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-dark" id="tableTrsPoolID">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">#</th>
+                                                <th scope="col">From</th>
+                                                <th scope="col">To</th>
+                                                <th scope="col">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const Domain = `{{url}}`;
+        const address = `{{data.address}}`.toString();
+
+
+        $(document).ready(() => {
+            initWallet();
+            setupWS();
+        })
+
+        function initWallet() {
+            getBalance();
+            getTransactionPool();
+            //getMyUnspentTransactionOutput();
+        }
+
+        function getBalance() {
+            $.ajax({
+                url: Domain + '/blockchain/balance',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ address: address })
+            }).done(function (data) {
+                $('#pBalanceID').html(data.balance);
+            })
+        }
+
+        function getMyUnspentTransactionOutput() {
+            $.ajax({
+                url: Domain + '/blockchain/myUnspentTransactionOutputs',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ address: address })
+            }).done(function (data) {
+                console.log(data);
+            })
+        }
+
+        function sendTransaction() {
+            let amount = $("#cardSendTransactionID .amount").val().trim();
+            let receiveAddress = $("#cardSendTransactionID .receiveAddress").val().trim();
+            let privateKey = $("#cardSendTransactionID .privateKey").val().trim();
+            $.ajax({
+                url: Domain + '/blockchain/sendTransaction',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    privateKey: privateKey,
+                    amount: parseInt(amount),
+                    address: receiveAddress
+                })
+            }).done(function (data) {
+                //console.log(data);
+                //const txPool = [data.resp];
+                //updateTransactionPoolTable(txPool);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Your work has been saved',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }).fail(function (e) {
+                console.log(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Your work has been saved',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }).always(() => {
+                $("#cardSendTransactionID .amount").val('');
+                $("#cardSendTransactionID .receiveAddress").val('');
+                $("#cardSendTransactionID .privateKey").val('');
+            })
+        }
+
+        function getTransactionPool() {
+            $.ajax({
+                url: Domain + '/blockchain/transactionPool',
+                type: 'GET'
+            }).done(function (data) {
+                updateTransactionPoolTable(data.transactionPool);
+            })
+        }
+
+        function MineBlock(){
+             $.ajax({
+                url: Domain + '/blockchain/mineBlock',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    address: address
+                })
+            }).done(function (data) {
+                getBalance();
+                getTransactionPool();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mine sucess',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }).fail(function (e) {
+                console.log(e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Some thing is error',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            }).always(() => {
+            })
+        }
+
+        //Web socket
+        let MessageType = {
+            QUERY_LATEST: 0,
+            QUERY_ALL: 1,
+            RESPONSE_BLOCKCHAIN: 2,
+            QUERY_TRANSACTION_POOL: 3,
+            RESPONSE_TRANSACTION_POOL: 4
+        }
+        function setupWS() {
+            const ws = new WebSocket('ws://localhost:40567');
+
+            ws.onopen = function () {
+                console.log('onopen');
+                const messsage = {
+                    "type": MessageType.QUERY_TRANSACTION_POOL,
+                    "data": null
+                };
+                ws.send(JSON.stringify(messsage));
+            }
+
+            ws.onmessage = function (e) {
+                const message = JSON.parse(e.data);
+                if (message === null || message === undefined)
+                    return;
+                handleMessage(message);
+            }
+        }
+
+        function handleMessage(message) {
+            try {
+                switch (message.type) {
+                    case MessageType.QUERY_LATEST:
+                        break
+                    case MessageType.QUERY_ALL:
+                        break;
+                    case MessageType.RESPONSE_BLOCKCHAIN:
+                        break;
+                    case MessageType.QUERY_TRANSACTION_POOL:
+                        break;
+                    case MessageType.RESPONSE_TRANSACTION_POOL:
+                        const transactionPool = JSON.parse(message.data);
+                        if (transactionPool === null) {
+                            console.log("Can't find traction pool");
+                            break;
+                        }
+                        updateTransactionPoolTable(transactionPool);
+                        break;
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
+        function updateTransactionPoolTable(transactionPool) {
+            console.log(transactionPool);
+            if (transactionPool === null)
+                return;
+            var html = '';
+            transactionPool.forEach((trs) => {
+                let tr = `
+                    <tr>
+                        <td>${trs.id}</td>
+                        <td>${trs.txOuts[1].address}</td>
+                        <td>${trs.txOuts[0].address}</td>
+                        <td>${trs.txOuts[0].amount}</td>
+                    </tr>
+                `;
+                html += tr;
+            })
+            $("#tableTrsPoolID tbody").html(html);
+        }
+    </script>
+</body>
+
+</html>
