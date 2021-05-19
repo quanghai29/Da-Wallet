@@ -2,8 +2,9 @@ const Block = require('./block');
 const blUtil = require('../utils/blockchain.util');
 const txUtil = require('../utils/transaction.util');
 const wallet = require('../wallet/wallet');
-const trs =require('../transaction/transaction');
+const trs = require('../transaction/transaction');
 const trsPool = require('../transaction/transactionPool');
+const ws = require('../ws');
 const _ = require('lodash');
 
 // in seconds
@@ -17,9 +18,9 @@ const sysPrivateKey = '76456b9075147a8b5c52e9985fd309f1c532aafed70e4d010b7249cb9
 const sysAdress = '04165c7464825649c888b6d9345ed5664964814ad9f57114f0927009bb0aaca3439a283f316bb28a0a8899cb183666e60879deb3d9ac6279c604b44b78987486d8';
 
 class BlockChain {
-    constructor(genesisBlock){
+    constructor(genesisBlock) {
         this.blockchain = [genesisBlock];
-        
+
         this.unspentTxOuts = [...trs.processTransactions(this.blockchain[0].data, [], 0)]; //genesisTransaction
     }
 
@@ -54,13 +55,19 @@ class BlockChain {
         const nextTimestamp = blUtil.getCurrentTimestamp();
         const newBlock = this.creatNewBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData, difficulty);
         this.addBlockToChain(newBlock);
+        if (this.addBlockToChain(newBlock)) {
+            broadcastLatest();
+            return newBlock;
+        } else {
+            return null;
+        }
         return newBlock;
     };
 
 
     //Tạo 1 block với transaction khi thực hiện giao dịch
     //privateKey cua nguoi gui
-    generatenextBlockWithTransaction = (privateKey ,address, receiverAddress, amount) => {
+    generatenextBlockWithTransaction = (privateKey, address, receiverAddress, amount) => {
         if (!txUtil.isValidAddress(receiverAddress)) {
             throw Error('invalid address');
         }
@@ -81,17 +88,31 @@ class BlockChain {
 
     //Thêm một block mới vào chain
     addBlockToChain = (newBlock) => {
-        if (this.isValidNewBlock(newBlock, this.getLatestBlock())) {
-            this.blockchain.push(newBlock);
-            return true;
+        if (this.isValidNewBlock(newBlock, this.blockchain[this.blockchain.length - 1])) {
+            const retVal = trs.processTransactions(newBlock.data, this.getUnspentTxOuts(), newBlock.index);
+            if (retVal === null) {
+                console.log('block is not valid in terms of transactions');
+                return false;
+            } else {
+                this.blockchain.push(newBlock);
+                this.setUnspentTxOuts(retVal);
+                trsPool.updateTransactionPool(this.unspentTxOuts);
+                return true;
+            }
         }
         return false;
     };
-    
-    sendTransaction = (address, amount) => {
-        const tx = wallet.createTransaction(address, amount, wallet.getPrivateFromWallet(), _.cloneDeep(this.unspentTxOuts), getTransactionPool());
-        addToTransactionPool(tx, getUnspentTxOuts());
-        //broadCastTransactionPool();
+
+    // and txPool should be only updated at the same time
+    setUnspentTxOuts = (newUnspentTxOut) => {
+        console.log('replacing unspentTxouts with: %s', newUnspentTxOut);
+        this.unspentTxOuts = newUnspentTxOut;
+    };
+
+    sendTransaction = (privateKey, address, amount) => {
+        const tx = wallet.createTransaction(address, amount, privateKey, this.getUnspentTxOuts(), trsPool.getTransactionPool());
+        trsPool.addToTransactionPool(tx, this.getUnspentTxOuts());
+        ws.broadCastTransactionPool();
         return tx;
     };
 
@@ -134,7 +155,7 @@ class BlockChain {
             console.log(typeof (newBlock.hash) + ' ' + typeof this.calculateHashForBlock(newBlock));
             console.log('invalid hash: ' + this.calculateHashForBlock(newBlock) + ' ' + newBlock.hash);
             return false;
-        }else if(this.hashMatchesDifficulty(newBlock.hash, newBlock.difficulty) === false){
+        } else if (this.hashMatchesDifficulty(newBlock.hash, newBlock.difficulty) === false) {
             console.log('block difficulty not satisfied. Expected: ' + block.difficulty + 'got: ' + block.hash);
             return false;
         }
@@ -147,11 +168,11 @@ class BlockChain {
         const isValidGenesis = (block) => {
             return JSON.stringify(block) === JSON.stringify(this.blockchain[0]);
         };
-    
+
         if (isValidGenesis(blockchainToValidate[0]) === false) {
             return false;
         }
-    
+
         for (let i = 1; i < blockchainToValidate.length; i++) {
             if (this.isValidNewBlock(blockchainToValidate[i], blockchainToValidate[i - 1]) === false) {
                 return false;
@@ -167,7 +188,7 @@ class BlockChain {
     };
 
     isValidTimestamp = (newBlock, previousBlock) => {
-        return ( previousBlock.timestamp - 60 < newBlock.timestamp )
+        return (previousBlock.timestamp - 60 < newBlock.timestamp)
             && newBlock.timestamp - 60 < blUtil.getCurrentTimestamp();
     };
 
@@ -209,7 +230,7 @@ class BlockChain {
             && typeof block.hash === 'string'
             && typeof block.previousHash === 'string'
             && typeof block.timestamp === 'number'
-            //&& typeof block.data === 'string';
+        //&& typeof block.data === 'string';
     };
 
     handleReceivedTransaction = (transaction) => {
@@ -217,7 +238,7 @@ class BlockChain {
     };
 
     getUnspentTxOuts = () => this.unspentTxOuts;
-    
+
 }
 
 

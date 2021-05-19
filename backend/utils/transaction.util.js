@@ -1,10 +1,26 @@
-module.exports = {
-    /////////////////////////////////
+ /////////////////////////////////
     /* check validate of structure */
     ////////////////////////////////
 
+    // valid address is a valid ecdsa public key in the 04 + X-coordinate + Y-coordinate format
+    // address: string
+    const isValidAddress = (address) => {
+        if (address.length !== 130) {
+            console.log(address);
+            console.log('invalid public key length');
+            return false;
+        } else if (address.match('^[a-fA-F0-9]+$') === null) {
+            console.log('public key must contain only hex characters');
+            return false;
+        } else if (!address.startsWith('04')) {
+            console.log('public key must start with 04');
+            return false;
+        }
+        return true;
+    };
+
     //check validate of structure transaction
-    isValidTransactionStructure(transaction) {
+    const isValidTransactionStructure = (transaction) => {
         if (typeof transaction.id !== 'string') {
             console.log('transactionId missing');
             return false;
@@ -30,10 +46,10 @@ module.exports = {
             return false;
         }
         return true;
-    },
+    };
 
     //check validate of transactionOutput structure
-    isValidTxOutStructure(txOut) {
+    const isValidTxOutStructure = (txOut) => {
         if (txOut == null) {
             console.log('txOut is null');
             return false;
@@ -49,10 +65,10 @@ module.exports = {
         } else {
             return true;
         }
-    },
+    };
 
     //check valid transaction Input structure
-    isValidTxInStructure(txIn) {
+    const isValidTxInStructure = (txIn) => {
         if (txIn == null) {
             console.log('txIn is null');
             return false;
@@ -68,22 +84,11 @@ module.exports = {
         } else {
             return true;
         }
-    },
+    };
 
-    // valid address is a valid ecdsa public key in the 04 + X-coordinate + Y-coordinate format
-    // address: string
-    isValidAddress(address) {
-        if (address.length !== 130) {
-            console.log(address);
-            console.log('invalid public key length');
-            return false;
-        } else if (address.match('^[a-fA-F0-9]+$') === null) {
-            console.log('public key must contain only hex characters');
-            return false;
-        } else if (!address.startsWith('04')) {
-            console.log('public key must start with 04');
-            return false;
-        }
-        return true;
-    }
+module.exports = {
+    isValidAddress,
+    isValidTransactionStructure,
+    isValidTxOutStructure,
+    isValidTxInStructure
 }

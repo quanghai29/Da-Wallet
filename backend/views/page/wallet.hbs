@@ -105,7 +105,7 @@
         </div>
         <div class="row">
             <div class="col-md-9">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm" id="cardSendTransactionID"> 
                     <div class="card-header">
                         <h4>Send Transaction<h4>
                     </div>
@@ -113,13 +113,17 @@
                         <div class="px-5">
                             <div class="form-group">
                                 <label for="exampleInputEmail1">Amount</label>
-                                <input type="number" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter amount">
+                                <input type="number" class="form-control amount" aria-describedby="emailHelp" placeholder="Enter amount">
                             </div>
                             <div class="form-group">
                                 <label for="exampleInputEmail1">To Address</label>
-                                <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter address">
+                                <input type="text" class="form-control receiveAddress" aria-describedby="emailHelp" placeholder="Enter address">
                             </div>
-                            <button class="btn btn-primary">Send transaction</button>
+                             <div class="form-group">
+                                <label for="exampleInputEmail1">Your privateKey </label>
+                                <input type="text" class="form-control privateKey" aria-describedby="emailHelp" placeholder="Enter private key to confirm">
+                            </div>
+                            <button class="btn btn-primary" onclick="sendTransaction()">Send transaction</button>
                         </div>
                     </div>
                 </div>
@@ -153,25 +157,23 @@
             })
         }
 
-        function buyCoin(){
-            let toAdress = $("#buyCoinModal .ipuAdress").val().trim();
-            let amount = $("#buyCoinModal .ipuAmount").val();
-            if(toAdress === ''){
-                alert('address must be not empty');
-                return;
-            }
-
+        function sendTransaction(){
+            let amount = $("#cardSendTransactionID .amount").val().trim();
+            let receiveAddress = $("#cardSendTransactionID .receiveAddress").val().trim();
+            let privateKey = $("#cardSendTransactionID .privateKey").val().trim();
             $.ajax({
-                url: Domain + '/blockchain/buyCoin',
+                url: Domain + '/blockchain/sendTransaction',
                 type: 'POST',
                 dataType: 'json',
                 contentType: 'application/json',
-                data: JSON.stringify({ toAdress; parseInt(amount)})
+                data: JSON.stringify({
+                    privateKey: privateKey,
+                    amount: parseInt(amount),
+                    address: receiveAddress
+                })
             }).done(function (data) {
                 console.log(data);
             })
-                
-
         }
     </script>
 </body>

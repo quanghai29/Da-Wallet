@@ -7,6 +7,14 @@ const WS_PORT = 40567;
 // all sockets 
 let sockets = [];
 
+let MessageType = {
+    QUERY_LATEST : 0,
+    QUERY_ALL : 1,
+    RESPONSE_BLOCKCHAIN : 2,
+    QUERY_TRANSACTION_POOL : 3,
+    RESPONSE_TRANSACTION_POOL : 4
+}
+
 if (!sockets) {
     sockets = new WebSocket.Server({
     port: WS_PORT
@@ -19,7 +27,9 @@ if (!sockets) {
   console.log(`WebSocket Server is running at port ${WS_PORT}`);
 }
 
-const initConnection = (ws) => {
+function getSockets () { return sockets };
+
+function initConnection (ws){
     sockets.push(ws);
     initMessageHandler(ws);
     initErrorHandler(ws);
@@ -32,7 +42,7 @@ const initConnection = (ws) => {
 };
 
 // convert JSON to Object
-const JSONToObject = (data) => {
+function JSONToObject(data) {
     try {
         return JSON.parse(data);
     } catch (e) {
@@ -41,7 +51,7 @@ const JSONToObject = (data) => {
     }
 };
 
-const initMessageHandler = (ws) => {
+function initMessageHandler (ws) {
     ws.on('message', (data) => {
 
         try {
@@ -94,27 +104,100 @@ const initMessageHandler = (ws) => {
 };
 
 
+function initErrorHandler (ws)  {
+    const closeConnection = (myWs) => {
+        console.log('connection failed to peer: ' + myWs.url);
+        sockets.splice(sockets.indexOf(myWs), 1);
+    };
+    ws.on('close', () => closeConnection(ws));
+    ws.on('error', () => closeConnection(ws));
+};
+
+function connectToPeers (newPeer) {
+    const ws = new WebSocket(newPeer);
+    ws.on('open', () => {
+        initConnection(ws);
+    });
+    ws.on('error', () => {
+        console.log('connection failed');
+    });
+};
+
+function handleBlockchainResponse(receivedBlocks) {
+    if (receivedBlocks.length === 0) {
+        console.log('received block chain size of 0');
+        return;
+    }
+    const latestBlockReceived = receivedBlocks[receivedBlocks.length - 1];
+    if (!bitcoin.isValidBlockStructure(latestBlockReceived)) {
+        console.log('block structuture not valid');
+        return;
+    }
+    const latestBlockHeld = bitcoin.getLatestBlock();
+    if (latestBlockReceived.index > latestBlockHeld.index) {
+        console.log('blockchain possibly behind. We got: '
+            + latestBlockHeld.index + ' Peer got: ' + latestBlockReceived.index);
+        if (latestBlockHeld.hash === latestBlockReceived.previousHash) {
+            if (bitcoin.addBlockToChain(latestBlockReceived)) {
+                broadcast(responseLatestMsg());
+            }
+        } else if (receivedBlocks.length === 1) {
+            console.log('We have to query the chain from our peer');
+            broadcast(queryAllMsg());
+        } else {
+            console.log('Received blockchain is longer than current blockchain');
+            bitcoin.replaceChain(receivedBlocks);
+        }
+    } else {
+        console.log('received blockchain is not longer than received blockchain. Do nothing');
+    }
+};
 
 /////////////////////////////////
 /* Support function */
 ////////////////////////////////
-const write = (ws, message) => ws.send(JSON.stringify(message));
-const broadcast = (message) => sockets.forEach((socket) => write(socket, message));
+function write (ws, message) { return ws.send(JSON.stringify(message)) };
+function broadcast (message) { return sockets.forEach((socket) => write(socket, message)) };
 
+function broadcastLatest (){
+    broadcast(responseLatestMsg());
+};
 
+function broadCastTransactionPool () {
+    broadcast(responseTransactionPoolMsg());
+};
 /////////////////////////////////
 /* Handle with transaction */
 ////////////////////////////////
 
-//request all transaction in pool
+///
+/// query message
+///
 const queryTransactionPoolMsg = () => ({
     'type': MessageType.QUERY_TRANSACTION_POOL,
     'data': null
 });
 
-//return all transaction in pool which are unconfirm
+const queryChainLengthMsg = () => ({'type': MessageType.QUERY_LATEST, 'data': null});
+
+const queryAllMsg = () => ({'type': MessageType.QUERY_ALL, 'data': null});
+
+///
+/// respone message
+///
 const responseTransactionPoolMsg = () => ({
     'type': MessageType.RESPONSE_TRANSACTION_POOL,
     'data': JSON.stringify(trsPool.getTransactionPool())
 });
 
+const responseLatestMsg = () => ({
+    'type': MessageType.RESPONSE_BLOCKCHAIN,
+    'data': JSON.stringify([getLatestBlock()])
+});
+
+module.exports = {
+    connectToPeers,
+    broadcastLatest,
+    broadCastTransactionPool,
+    getSockets
+};

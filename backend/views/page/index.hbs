@@ -62,7 +62,7 @@
                         <div class="row">
                             <div class="col-md-9">
                                 <label for="">Private key</label>
-                                <input class="form-control" id="privateKey"/>
+                                <input placeholder="type your private key" class="form-control" id="privateKey"/>
                             </div>
                             <div class="col-md-1">
                                 <button class="btn btn-primary" style="margin-top: 31px;" id="access">Access</button>
@@ -104,7 +104,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({privateKey: key})
             }).done(function (data) {
-                const walletUrl = Domain + '/myWallet/?address=' + data.address;
+                const walletUrl = Domain + '/myWallet/' + data.address;
                 window.location.replace(walletUrl);
             })
         })

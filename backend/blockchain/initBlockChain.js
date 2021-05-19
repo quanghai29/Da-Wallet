@@ -24,13 +24,13 @@ const genesisBlock = new Block(0,hash,'',Blutil.getCurrentTimestamp(),[genesisTx
 
 const bitcoin = new BlockChain(genesisBlock);
 
-const privateKey = wallet.generatePrivateKey();
-const address = wallet.getPublicAdress(privateKey);
+//const privateKey = wallet.generatePrivateKey();
+//const address = wallet.getPublicAdress(privateKey);
 
 // //Get first reward for this account
-bitcoin.getFirstBalance(address);
-const balance =  wallet.getBalance(address,bitcoin.unspentTxOuts);
+//bitcoin.getFirstBalance(address);
+//const balance =  wallet.getBalance(address,bitcoin.unspentTxOuts);
 
-console.log(bitcoin);
-console.log(balance);
+//console.log(bitcoin);
+//console.log(balance);
 module.exports = bitcoin;
