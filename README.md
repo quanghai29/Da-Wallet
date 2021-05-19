@@ -20,6 +20,10 @@
  - Chưa setUp cho hệ thống tự động gom transaction trong transactionPool vào block (hiện tại vẫn đang mine bằng tay)
  - Chưa set cho hệ thống chạy trên docker
 
- ## Thuật toán có sử dụng
- - Proof of work
- <img src="./ProofOfWork.PNG">
+ ## Các kĩ thuật đã sử dụng
+ - Sử dụng thuật toán <storng> Proof of work </strong> 
+ <img src="./ProofOfWork.PNG"/>
+
+ - Sử dụng <strong>Websocket</strong> để broadcast đến các client connect
+ 
+ 
